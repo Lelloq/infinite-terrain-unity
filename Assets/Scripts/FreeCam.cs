@@ -6,7 +6,7 @@ using UnityEngine;
 public class FreeCam : MonoBehaviour
 {
     [SerializeField]
-    float flightSpeed = 10.0f;
+    float flightSpeed = 100.0f;
     [SerializeField]
     float Sensitivity = 2.0f;
 
@@ -19,15 +19,17 @@ public class FreeCam : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Minus)) 
+        if(Input.GetKey(KeyCode.Minus)) 
         {
             flightSpeed -= 1.0f;
         }
 
-        if(Input.GetKeyDown(KeyCode.Equals)) 
+        if(Input.GetKey(KeyCode.Equals)) 
         {
             flightSpeed += 1.0f;
         }
+
+        flightSpeed = Mathf.Clamp(flightSpeed, 1.0f, 1000.0f);
 
         float forward = Input.GetAxis("Forward");
         float horizontal = Input.GetAxis("Horizontal");

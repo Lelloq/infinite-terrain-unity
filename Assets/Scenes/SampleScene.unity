@@ -472,15 +472,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e67bc5a31a752804793393e7c78468bd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  drawMode: 1
   MapWidth: 100
-  MapHeight: 103
-  NoiseScale: 27.17
-  Octaves: 11
-  Persistance: 0.71
-  Frequency: 2.05
-  Seed: 7
-  Offset: {x: 1.8, y: -6}
+  MapHeight: 100
+  NoiseScale: 17.66
+  Octaves: 8
+  Persistance: 0.5
+  Frequency: 1.94
+  Seed: 0
+  Offset: {x: 1.8, y: 0}
   AutoUpdate: 1
+  regions:
+  - Name: Water
+    Height: 0.4
+    Colour: {r: 0.13127448, g: 0.34120235, b: 0.4716981, a: 0}
+  - Name: Grass
+    Height: 1
+    Colour: {r: 0.27576146, g: 0.6320754, b: 0.24150053, a: 0}
 --- !u!4 &2078525725
 Transform:
   m_ObjectHideFlags: 0
@@ -610,7 +618,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 100, y: 1, z: 103}
+  m_LocalScale: {x: 100, y: 1, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
