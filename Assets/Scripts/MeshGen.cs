@@ -14,20 +14,23 @@ public static class MeshGen
         float topLeftX = (width - 1) / -2f;
         float topLeftZ = (height - 1) / 2f;
 
-        MeshData meshData = new MeshData(width, height);
+        int meshSimplificationIncrement = Mathf.Max(1, lod * 2);
+        int vertsPerLine = (width - 1) / meshSimplificationIncrement + 1;
+
+        MeshData meshData = new MeshData(vertsPerLine, vertsPerLine);
         int index = 0;
 
-        for(int y = 0; y < height; y++) 
+        for(int y = 0; y < height; y += meshSimplificationIncrement) 
         {
-            for(int x = 0; x < width; x++) 
+            for(int x = 0; x < width; x += meshSimplificationIncrement) 
             {
                 meshData.vertices[index] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x, y]) * heightMult, topLeftZ - y);
                 meshData.uvs[index] = new Vector2(x / (float)width,y / (float)height);
 
                 if(x < width - 1 && y < height - 1) //Ignoring bottom, rightmost edges
                 {
-                    meshData.AddTriangles(index, index + width + 1, index + width);
-                    meshData.AddTriangles(index + width + 1, index, index + 1);
+                    meshData.AddTriangles(index, index + vertsPerLine + 1, index + vertsPerLine);
+                    meshData.AddTriangles(index + vertsPerLine + 1, index, index + 1);
                 }
                 index++;
             }

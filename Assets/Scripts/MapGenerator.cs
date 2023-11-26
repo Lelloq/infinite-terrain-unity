@@ -7,8 +7,13 @@ public class MapGenerator : MonoBehaviour
     public enum DrawMode { NoiseMap, ColourMap, Mesh }
     public DrawMode drawMode;
 
-    public int MapWidth;
-    public int MapHeight;
+    /*Mesh has a limit of 65k triangles so this is the highest chunk size it can go whilst staying
+    Within LODs*/
+    const int MAPCHUNKSIZE = 241;
+
+    [Range(0,6)]
+    public int LevelOfDetail;
+
     public float NoiseScale;
     public float HeightMultiplier;
 
@@ -33,19 +38,19 @@ public class MapGenerator : MonoBehaviour
 
     public void GenerateMap() 
     {
-        float[,] noiseMap = GenerateNoise.GenerateNoiseMap(MapWidth, MapHeight, NoiseScale, Seed, Octaves, Persistance, Frequency, Offset);
+        float[,] noiseMap = GenerateNoise.GenerateNoiseMap(MAPCHUNKSIZE, MAPCHUNKSIZE, NoiseScale, Seed, Octaves, Persistance, Frequency, Offset);
 
-        Color[] colourMap = new Color[MapWidth * MapHeight];
-        for(int y = 0; y < MapHeight; y++) 
+        Color[] colourMap = new Color[MAPCHUNKSIZE * MAPCHUNKSIZE];
+        for(int y = 0; y < MAPCHUNKSIZE; y++) 
         {
-            for(int x = 0; x < MapWidth; x++) 
+            for(int x = 0; x < MAPCHUNKSIZE; x++) 
             {
                 float curHeight = noiseMap[x, y];
                 foreach(TerrainType region in regions)
                 {
                     if(curHeight <= region.Height) 
                     {
-                        colourMap[y * MapWidth + x] = region.Colour;
+                        colourMap[y * MAPCHUNKSIZE + x] = region.Colour;
                         break;
                     }
                 }
@@ -59,18 +64,16 @@ public class MapGenerator : MonoBehaviour
         }
         else if(drawMode == DrawMode.ColourMap)
         {
-            display.DrawTexture(TextureGen.TextureFromColourMap(colourMap, MapWidth, MapHeight));
+            display.DrawTexture(TextureGen.TextureFromColourMap(colourMap, MAPCHUNKSIZE, MAPCHUNKSIZE));
         }
         else if(drawMode == DrawMode.Mesh) 
         {
-            display.DrawMesh(MeshGen.GenerateTerrainMesh(noiseMap, HeightMultiplier, meshhe), TextureGen.TextureFromColourMap(colourMap, MapWidth, MapHeight));
+            display.DrawMesh(MeshGen.GenerateTerrainMesh(noiseMap, HeightMultiplier, MeshHeightCurve, LevelOfDetail), TextureGen.TextureFromColourMap(colourMap, MAPCHUNKSIZE, MAPCHUNKSIZE));
         }
     }
 
     private void OnValidate()
     {
-        MapWidth = Mathf.Clamp(MapWidth, 1, int.MaxValue);
-        MapHeight = Mathf.Clamp(MapHeight, 1, int.MaxValue);
         Octaves = Mathf.Clamp(Octaves, 1, int.MaxValue);
         Frequency = Mathf.Clamp(Frequency, 1, float.MaxValue);
     }
