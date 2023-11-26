@@ -9,6 +9,8 @@ public static class MeshGen
 {
     public static MeshData GenerateTerrainMesh(float[,] heightMap, float heightMult, AnimationCurve heightCurve, int lod) 
     {
+        AnimationCurve _heightCurve = new AnimationCurve(heightCurve.keys);
+
         int width = heightMap.GetLength(0);
         int height = heightMap.GetLength(1);
         float topLeftX = (width - 1) / -2f;
@@ -24,7 +26,7 @@ public static class MeshGen
         {
             for(int x = 0; x < width; x += meshSimplificationIncrement) 
             {
-                meshData.vertices[index] = new Vector3(topLeftX + x, heightCurve.Evaluate(heightMap[x, y]) * heightMult, topLeftZ - y);
+                meshData.vertices[index] = new Vector3(topLeftX + x, _heightCurve.Evaluate(heightMap[x, y]) * heightMult, topLeftZ - y);
                 meshData.uvs[index] = new Vector2(x / (float)width,y / (float)height);
 
                 if(x < width - 1 && y < height - 1) //Ignoring bottom, rightmost edges

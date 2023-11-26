@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,8 +7,11 @@ public class InfiniteTerrain : MonoBehaviour
 {
     public const float MAXVIEWDIST = 300;
     public Transform Viewer;
+    public Material MapMaterial;
 
     public static Vector2 ViewPos;
+    static MapGenerator mapGenerator;
+
     int chunkSize;
     int chunksVisibleInView;
 
@@ -16,6 +20,7 @@ public class InfiniteTerrain : MonoBehaviour
 
     private void Start()
     {
+        mapGenerator = FindObjectOfType<MapGenerator>();
         chunkSize = MapGenerator.MAPCHUNKSIZE - 1;
         chunksVisibleInView = Mathf.RoundToInt(MAXVIEWDIST / chunkSize);
     }
@@ -54,7 +59,7 @@ public class InfiniteTerrain : MonoBehaviour
                 }
                 else 
                 {
-                    chunks.Add(viewChunkCoord, new TerrainChunk(viewChunkCoord, chunkSize));
+                    chunks.Add(viewChunkCoord, new TerrainChunk(viewChunkCoord, chunkSize, transform, MapMaterial));
                 }
             }
         }
@@ -66,17 +71,35 @@ public class InfiniteTerrain : MonoBehaviour
         Vector2 position;
         Bounds bounds;
 
-        public TerrainChunk(Vector2 coords, int size) 
+        MeshRenderer meshRenderer;
+        MeshFilter meshFilter;
+
+        public TerrainChunk(Vector2 coords, int size, Transform parent, Material material) 
         {
             position = coords * size;
             bounds = new Bounds(position, Vector2.one * size);
             Vector3 position3D = new Vector3(position.x,0,position.y);
 
-            meshObject = GameObject.CreatePrimitive(PrimitiveType.Plane);
-            meshObject.transform.position = position3D;
-            meshObject.transform.localScale = Vector3.one * size / 10f;
+            meshObject = new GameObject("Terrain Chunk");
+            meshRenderer = meshObject.AddComponent<MeshRenderer>();
+            meshFilter = meshObject.AddComponent<MeshFilter>();
+            meshRenderer.material = material;
 
+            meshObject.transform.position = position3D;
+            meshObject.transform.parent = parent;
             SetVisible(false);
+
+            mapGenerator.RequestMapData(OnMapDataReceived);
+        }
+
+        void OnMapDataReceived(MapData mapData) 
+        {
+            mapGenerator.RequestMeshData(mapData, OnMeshDataReceived);
+        }
+
+        void OnMeshDataReceived(MeshData meshData) 
+        {
+            meshFilter.mesh = meshData.CreateMesh();
         }
 
         public void UpdateChunk() 
