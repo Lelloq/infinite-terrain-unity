@@ -12,9 +12,12 @@ public class MapGenerator : MonoBehaviour
 
     public GenerateNoise.NormalizeMode NormalizeMode;
 
+    //+2 -2 to compensate for the borders
+    const int COMPENSATION = 2;
+
     /*Mesh has a limit of 65k triangles so this is the highest chunk size it can go whilst staying
     Within LODs*/
-    public const int MAP_CHUNK_SIZE = 241;
+    public const int MAP_CHUNK_SIZE = 241 - COMPENSATION;
 
     [Range(0, 6)]
     public int LevelOfDetailPreview;
@@ -132,8 +135,8 @@ public class MapGenerator : MonoBehaviour
     {
         GenerateNoise.NoiseMapData noiseData = new()
         {
-            width = MAP_CHUNK_SIZE,
-            height = MAP_CHUNK_SIZE,
+            width = MAP_CHUNK_SIZE + COMPENSATION,
+            height = MAP_CHUNK_SIZE + COMPENSATION,
             seed = Seed,
             scale = NoiseScale,
             octaves = Octaves,
