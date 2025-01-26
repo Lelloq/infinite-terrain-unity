@@ -1,14 +1,14 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class InfiniteTerrain : MonoBehaviour
 {
-    const float VIEWERCHUNKUPDATERATE = 25f;
-    const float VIEWERCHUNKUPDATERATESQUARE = VIEWERCHUNKUPDATERATE * VIEWERCHUNKUPDATERATE;
+    const float SCALE = 5f;
+
+    const float VIEWER_CHUNKUP_DATE_RATE = 16f;
+    const float VIEWER_CHUNK_UPDATE_RATE_SQUARE = VIEWER_CHUNKUP_DATE_RATE * VIEWER_CHUNKUP_DATE_RATE;
 
     public Transform Viewer;
     public Material MapMaterial;
@@ -23,24 +23,24 @@ public class InfiniteTerrain : MonoBehaviour
     int chunkSize;
     int chunksVisibleInView;
 
-    Dictionary<Vector2, TerrainChunk> chunks = new Dictionary<Vector2, TerrainChunk>();
-    List<TerrainChunk> terrainChunksVisibleLastUpdate = new List<TerrainChunk>();
+    readonly Dictionary<Vector2, TerrainChunk> chunks = new();
+    static readonly List<TerrainChunk> terrainChunksVisibleLastUpdate = new();
 
     private void Start()
     {
         mapGenerator = FindObjectOfType<MapGenerator>();
         maxViewDist = LodLevels.Last().VisibleDistThreshold;
-        chunkSize = MapGenerator.MAPCHUNKSIZE - 1;
-        chunksVisibleInView = Mathf.RoundToInt(maxViewDist/ chunkSize);
+        chunkSize = MapGenerator.MAP_CHUNK_SIZE - 1;
+        chunksVisibleInView = Mathf.RoundToInt(maxViewDist / chunkSize);
 
         UpdateVisibleChunks();
     }
 
     private void Update()
     {
-        viewPos = new Vector2(Viewer.position.x, Viewer.position.z);
+        viewPos = new Vector2(Viewer.position.x, Viewer.position.z) / SCALE;
 
-        if((viewPosOld - viewPos).sqrMagnitude > VIEWERCHUNKUPDATERATESQUARE) {
+        if((viewPosOld - viewPos).sqrMagnitude > VIEWER_CHUNK_UPDATE_RATE_SQUARE) {
             viewPosOld = viewPos;
             UpdateVisibleChunks();
         }
@@ -61,16 +61,11 @@ public class InfiniteTerrain : MonoBehaviour
         {
             for (int xOffset = -chunksVisibleInView; xOffset <= chunksVisibleInView; xOffset++)
             {
-                Vector2 viewChunkCoord = new Vector2(curChunkCoordX + xOffset, curChunkCoordY + yOffset);
+                Vector2 viewChunkCoord = new(curChunkCoordX + xOffset, curChunkCoordY + yOffset);
 
                 if (chunks.ContainsKey(viewChunkCoord)) 
                 {
                     chunks[viewChunkCoord].UpdateChunk();
-
-                    if (chunks[viewChunkCoord].IsVisible()) 
-                    {
-                        terrainChunksVisibleLastUpdate.Add(chunks[viewChunkCoord]);
-                    }
                 }
                 else 
                 {
@@ -101,7 +96,7 @@ public class InfiniteTerrain : MonoBehaviour
         {
             position = coords * size;
             bounds = new Bounds(position, Vector2.one * size);
-            Vector3 position3D = new Vector3(position.x, 0, position.y);
+            Vector3 position3D = new(position.x, 0, position.y);
             detailLevels = detaillevels;
 
             meshObject = new GameObject("Terrain Chunk");
@@ -109,8 +104,9 @@ public class InfiniteTerrain : MonoBehaviour
             meshFilter = meshObject.AddComponent<MeshFilter>();
             meshRenderer.material = material;
 
-            meshObject.transform.position = position3D;
+            meshObject.transform.position = position3D * SCALE;
             meshObject.transform.parent = parent;
+            meshObject.transform.localScale = Vector3.one * SCALE;
             SetVisible(false);
 
             lodMeshes = new LODMesh[detailLevels.Length];
@@ -127,15 +123,12 @@ public class InfiniteTerrain : MonoBehaviour
             mapData = mapdata;
             mapDataReceived = true;
 
-            Texture2D texture = TextureGen.TextureFromColourMap(mapdata.ColourMap, MapGenerator.MAPCHUNKSIZE, MapGenerator.MAPCHUNKSIZE);
+            int chunkSize = MapGenerator.MAP_CHUNK_SIZE;
+
+            Texture2D texture = TextureGen.TextureFromColourMap(mapdata.ColourMap, chunkSize, chunkSize);
             meshRenderer.material.mainTexture = texture;
 
             UpdateChunk();
-        }
-
-        void OnMeshDataReceived(MeshData meshdata) 
-        {
-            meshFilter.mesh = meshdata.CreateMesh();
         }
 
         public void UpdateChunk() 
@@ -174,6 +167,8 @@ public class InfiniteTerrain : MonoBehaviour
                         lodMesh.RequestMesh(mapData);
                     }
                 }
+
+                terrainChunksVisibleLastUpdate.Add(this);
             }
 
             SetVisible(visible);
