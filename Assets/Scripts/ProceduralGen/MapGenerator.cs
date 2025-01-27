@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class MapGenerator : MonoBehaviour
@@ -17,7 +18,7 @@ public class MapGenerator : MonoBehaviour
 
     /*Mesh has a limit of 65k triangles so this is the highest chunk size it can go whilst staying
     Within LODs*/
-    public const int MAP_CHUNK_SIZE = 241 - COMPENSATION;
+    public bool UseFlatShading;
 
     [Range(0, 6)]
     public int LevelOfDetailPreview;
@@ -42,6 +43,7 @@ public class MapGenerator : MonoBehaviour
     public bool UseFalloffMap = false;
 
     public TerrainType[] regions;
+    static MapGenerator instance;
 
     float[,] falloffMap;
 
@@ -50,7 +52,24 @@ public class MapGenerator : MonoBehaviour
 
     private void Awake()
     {
-        falloffMap = FallOffMap.GenerateFalloffMap(MAP_CHUNK_SIZE);
+        falloffMap = FallOffMap.GenerateFalloffMap(MapChunkSize);
+    }
+
+    public static int MapChunkSize
+    {
+        get
+        {
+            if (instance == null)
+            {
+                instance = FindObjectOfType<MapGenerator>();
+            }
+
+            if (instance.UseFlatShading)
+            {
+                return 97 - COMPENSATION;
+            }
+            return 241 - COMPENSATION;
+        }
     }
 
     public void Start()
@@ -70,15 +89,16 @@ public class MapGenerator : MonoBehaviour
         }
         else if (drawMode == DrawMode.ColourMap)
         {
-            display.DrawTexture(TextureGen.TextureFromColourMap(data.ColourMap, MAP_CHUNK_SIZE, MAP_CHUNK_SIZE));
+            display.DrawTexture(TextureGen.TextureFromColourMap(data.ColourMap, MapChunkSize, MapChunkSize));
         }
         else if (drawMode == DrawMode.Mesh)
         {
-            display.DrawMesh(MeshGen.GenerateTerrainMesh(data.HeightMap, HeightMultiplier, MeshHeightCurve, LevelOfDetailPreview), TextureGen.TextureFromColourMap(data.ColourMap, MAP_CHUNK_SIZE, MAP_CHUNK_SIZE));
+            display.DrawMesh(MeshGen.GenerateTerrainMesh(data.HeightMap, HeightMultiplier, MeshHeightCurve, LevelOfDetailPreview, UseFlatShading),
+                TextureGen.TextureFromColourMap(data.ColourMap, MapChunkSize, MapChunkSize));
         }
         else if (drawMode == DrawMode.FallOffMap)
         {
-            display.DrawTexture(TextureGen.TextureFromHeightMap(FallOffMap.GenerateFalloffMap(MAP_CHUNK_SIZE)));
+            display.DrawTexture(TextureGen.TextureFromHeightMap(FallOffMap.GenerateFalloffMap(MapChunkSize)));
         }
     }
 
@@ -112,7 +132,7 @@ public class MapGenerator : MonoBehaviour
 
     private void MeshDataThread(MapData mapData, int lod, Action<MeshData> callback)
     {
-        MeshData meshData = MeshGen.GenerateTerrainMesh(mapData.HeightMap, HeightMultiplier, MeshHeightCurve, lod);
+        MeshData meshData = MeshGen.GenerateTerrainMesh(mapData.HeightMap, HeightMultiplier, MeshHeightCurve, lod, UseFlatShading);
         meshThreadInfoQueue.Enqueue(new MapThreadInfo<MeshData>(callback, meshData));
     }
 
@@ -135,8 +155,8 @@ public class MapGenerator : MonoBehaviour
     {
         GenerateNoise.NoiseMapData noiseData = new()
         {
-            width = MAP_CHUNK_SIZE + COMPENSATION,
-            height = MAP_CHUNK_SIZE + COMPENSATION,
+            width = MapChunkSize + COMPENSATION,
+            height = MapChunkSize + COMPENSATION,
             seed = Seed,
             scale = NoiseScale,
             octaves = Octaves,
@@ -147,11 +167,11 @@ public class MapGenerator : MonoBehaviour
         };
 
         float[,] noiseMap = GenerateNoise.GenerateNoiseMap(noiseData);
-        Color[] colourMap = new Color[MAP_CHUNK_SIZE * MAP_CHUNK_SIZE];
+        Color[] colourMap = new Color[MapChunkSize * MapChunkSize];
 
-        for (int y = 0; y < MAP_CHUNK_SIZE; y++)
+        for (int y = 0; y < MapChunkSize; y++)
         {
-            for (int x = 0; x < MAP_CHUNK_SIZE; x++)
+            for (int x = 0; x < MapChunkSize; x++)
             {
                 if (UseFalloffMap)
                 {
@@ -162,7 +182,7 @@ public class MapGenerator : MonoBehaviour
                 {
                     if (curHeight >= region.Height)
                     {
-                        colourMap[y * MAP_CHUNK_SIZE + x] = region.Colour;
+                        colourMap[y * MapChunkSize + x] = region.Colour;
                     }
                     else
                     {
@@ -179,7 +199,7 @@ public class MapGenerator : MonoBehaviour
     {
         Octaves = Mathf.Clamp(Octaves, 1, int.MaxValue);
         Frequency = Mathf.Clamp(Frequency, 1, float.MaxValue);
-        falloffMap = FallOffMap.GenerateFalloffMap(MAP_CHUNK_SIZE);
+        falloffMap = FallOffMap.GenerateFalloffMap(MapChunkSize);
     }
 
     private struct MapThreadInfo<T>

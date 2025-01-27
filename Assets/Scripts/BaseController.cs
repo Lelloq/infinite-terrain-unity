@@ -10,7 +10,7 @@ public class Controller : MonoBehaviour
     public Transform camTransform;
     public Transform bodyTransform;
 
-    public float sens = 2.0f;
+    public float sens = 5.0f;
     public int fov = 90;
 
     private float camRot = 0.0f;
