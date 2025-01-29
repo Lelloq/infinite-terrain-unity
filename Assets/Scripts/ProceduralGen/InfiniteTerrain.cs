@@ -5,8 +5,6 @@ using UnityEngine;
 
 public class InfiniteTerrain : MonoBehaviour
 {
-    const float SCALE = 1f;
-
     const float VIEWER_CHUNKUP_DATE_RATE = 16f;
     const float VIEWER_CHUNK_UPDATE_RATE_SQUARE = VIEWER_CHUNKUP_DATE_RATE * VIEWER_CHUNKUP_DATE_RATE;
 
@@ -23,6 +21,8 @@ public class InfiniteTerrain : MonoBehaviour
     int chunkSize;
     int chunksVisibleInView;
 
+    readonly float scale = mapGenerator.terrainData.UniformScale;
+
     readonly Dictionary<Vector2, TerrainChunk> chunks = new();
     static readonly List<TerrainChunk> terrainChunksVisibleLastUpdate = new();
 
@@ -38,7 +38,7 @@ public class InfiniteTerrain : MonoBehaviour
 
     private void Update()
     {
-        viewPos = new Vector2(Viewer.position.x, Viewer.position.z) / SCALE;
+        viewPos = new Vector2(Viewer.position.x, Viewer.position.z) / scale;
 
         if ((viewPosOld - viewPos).sqrMagnitude > VIEWER_CHUNK_UPDATE_RATE_SQUARE)
         {
@@ -109,9 +109,9 @@ public class InfiniteTerrain : MonoBehaviour
             meshCollider = meshObject.AddComponent<MeshCollider>();
             meshRenderer.material = material;
 
-            meshObject.transform.position = position3D * SCALE;
+            meshObject.transform.position = position3D * mapGenerator.terrainData.UniformScale;
             meshObject.transform.parent = parent;
-            meshObject.transform.localScale = Vector3.one * SCALE;
+            meshObject.transform.localScale = Vector3.one * mapGenerator.terrainData.UniformScale;
             SetVisible(false);
 
             lodMeshes = new LODMesh[detailLevels.Length];
