@@ -21,8 +21,6 @@ public class InfiniteTerrain : MonoBehaviour
     int chunkSize;
     int chunksVisibleInView;
 
-    readonly float scale = mapGenerator.terrainData.UniformScale;
-
     readonly Dictionary<Vector2, TerrainChunk> chunks = new();
     static readonly List<TerrainChunk> terrainChunksVisibleLastUpdate = new();
 
@@ -30,7 +28,7 @@ public class InfiniteTerrain : MonoBehaviour
     {
         mapGenerator = FindObjectOfType<MapGenerator>();
         maxViewDist = LodLevels.Last().VisibleDistThreshold;
-        chunkSize = MapGenerator.MapChunkSize - 1;
+        chunkSize = mapGenerator.MapChunkSize - 1;
         chunksVisibleInView = Mathf.RoundToInt(maxViewDist / chunkSize);
 
         UpdateVisibleChunks();
@@ -38,7 +36,7 @@ public class InfiniteTerrain : MonoBehaviour
 
     private void Update()
     {
-        viewPos = new Vector2(Viewer.position.x, Viewer.position.z) / scale;
+        viewPos = new Vector2(Viewer.position.x, Viewer.position.z) / mapGenerator.terrainData.UniformScale;
 
         if ((viewPosOld - viewPos).sqrMagnitude > VIEWER_CHUNK_UPDATE_RATE_SQUARE)
         {
@@ -131,11 +129,6 @@ public class InfiniteTerrain : MonoBehaviour
         {
             mapData = mapdata;
             mapDataReceived = true;
-
-            int chunkSize = MapGenerator.MapChunkSize;
-
-            Texture2D texture = TextureGen.TextureFromColourMap(mapdata.ColourMap, chunkSize, chunkSize);
-            meshRenderer.material.mainTexture = texture;
 
             UpdateChunk();
         }

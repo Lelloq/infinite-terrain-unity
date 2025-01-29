@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   autoUpdate: 1
   UniformScale: 5
-  HeightMultiplier: 500
+  HeightMultiplier: 28.64
   MeshHeightCurve:
     serializedVersion: 2
     m_Curve:
@@ -66,5 +66,5 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  UseFalloffMap: 0
+  UseFalloffMap: 1
   UseFlatShading: 1

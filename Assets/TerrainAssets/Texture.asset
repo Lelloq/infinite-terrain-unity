@@ -9,14 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 89fccd6eab6432a4aa840abecc9ac87e, type: 3}
-  m_Name: Noise
+  m_Script: {fileID: 11500000, guid: 03461b59bbbf93646a0518f97f7e8db2, type: 3}
+  m_Name: Texture
   m_EditorClassIdentifier: 
-  autoUpdate: 1
-  NormalizeMode: 0
-  NoiseScale: 202.46
-  Octaves: 8
-  Persistance: 0.41
-  Frequency: 2.2
-  Seed: 0
-  Offset: {x: 0, y: 0}
+  autoUpdate: 0
